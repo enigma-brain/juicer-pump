@@ -1,10 +1,13 @@
 [project]
-name = "juicerpy"
+name = "juicer"
 version = "0.1.0"
 description = "Python wrapper for serial communication with the juicer."
 readme = "README.md"
 requires-python = ">=3.10"
-dependencies = ["ipython>=8.38.0", "pyserial>=3.5"]
+dependencies = ["pyserial>=3.5"]
+
+[dependency-groups]
+dev = ["ipython>=9.8.0"]
 
 [project.scripts]
 juicer-test-connection = "test_connection:main"
@@ -13,3 +16,6 @@ juicer-unit-test = "unit_test:_main"
 [build-system]
 requires = ["setuptools>=68", "wheel"]
 build-backend = "setuptools.build_meta"
+
+[tool.ruff.lint.per-file-ignores]
+"src/juicer/__init__.py" = ["F401"]

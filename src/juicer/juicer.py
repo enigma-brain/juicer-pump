@@ -69,7 +69,9 @@ class DeviceError(JuicerError):
         self.response = response
 
 
-def find_juicer_port(preferred: str | None = None, *, debug: bool = False) -> str | None:
+def find_juicer_port(
+    preferred: str | None = None, *, debug: bool = False
+) -> str | None:
     """
     Best-effort port auto-discovery.
 
@@ -94,7 +96,10 @@ def find_juicer_port(preferred: str | None = None, *, debug: bool = False) -> st
     for p in list_ports.comports():
         hwid = (p.hwid or "").lower()
         if ("vid:239a" in hwid or "vid_239a" in hwid or "vid=239a" in hwid) and (
-            "pid:8123" in hwid or "pid_8123" in hwid or "pid=8123" in hwid or "239a:8123" in hwid
+            "pid:8123" in hwid
+            or "pid_8123" in hwid
+            or "pid=8123" in hwid
+            or "239a:8123" in hwid
         ):
             return p.device
 
@@ -105,7 +110,9 @@ def find_juicer_port(preferred: str | None = None, *, debug: bool = False) -> st
         ports = list(list_ports.comports())
         print("Auto-detect tried description->vid/pid->hwid->by-id and found nothing.")
         for p in ports:
-            print(f"- device={p.device}, desc={p.description!r}, vid={p.vid}, pid={p.pid}, hwid={p.hwid!r}")
+            print(
+                f"- device={p.device}, desc={p.description!r}, vid={p.vid}, pid={p.pid}, hwid={p.hwid!r}"
+            )
 
     return None
 
@@ -244,7 +251,9 @@ class Juicer:
             self._ser.write(msg.encode("utf-8"))
             self._ser.flush()
         except serial.SerialTimeoutException as e:
-            raise ProtocolError(f"Serial write timed out (port busy/wedged?): {e!r}") from e
+            raise ProtocolError(
+                f"Serial write timed out (port busy/wedged?): {e!r}"
+            ) from e
 
         resp = self._readline_json(time.time() + float(timeout_s))
 
@@ -256,26 +265,40 @@ class Juicer:
         return resp
 
     def get(self, *keys: str, timeout_s: float | None = None) -> dict[str, Any]:
-        return self.request({"get": list(keys)}, timeout_s=timeout_s, raise_on_failure=False)
+        return self.request(
+            {"get": list(keys)}, timeout_s=timeout_s, raise_on_failure=False
+        )
 
     def set(self, *, timeout_s: float | None = None, **kwargs: Any) -> dict[str, Any]:
         return self.request({"set": kwargs}, timeout_s=timeout_s)
 
-    def do(self, action: Any, *, get: Iterable[str] | None = None, timeout_s: float | None = None) -> dict[str, Any]:
+    def do(
+        self,
+        action: Any,
+        *,
+        get: Iterable[str] | None = None,
+        timeout_s: float | None = None,
+    ) -> dict[str, Any]:
         payload: dict[str, Any] = {"do": action}
         if get is not None:
             payload["get"] = list(get)
-        return self.request(payload, timeout_s=timeout_s)
+
+        res = self.request(payload, timeout_s=timeout_s)
+        return res
 
     # Convenience methods
-    def reward(self, mls: float, *get_keys: str, timeout_s: float | None = None) -> dict[str, Any]:
+    def reward(
+        self, mls: float, *get_keys: str, timeout_s: float | None = None
+    ) -> dict[str, Any]:
         """
         Dispense `mls` and optionally fetch additional keys in the same request.
 
         Example:
             j.reward(0.5, "reward_mls", "reward_number", "juice_level")
         """
-        return self.do({"reward": float(mls)}, get=get_keys or None, timeout_s=timeout_s)
+        return self.do(
+            {"reward": float(mls)}, get=get_keys or None, timeout_s=timeout_s
+        )
 
     def reward_with_notify(
         self,
@@ -294,22 +317,36 @@ class Juicer:
         if "notify" not in get_list:
             get_list.append("notify")
         resp = self.do({"reward": float(mls)}, get=get_list, timeout_s=timeout_s)
-        deadline_s = time.time() + float(notify_timeout_s or timeout_s or self.timeout_s)
+        deadline_s = time.time() + float(
+            notify_timeout_s or timeout_s or self.timeout_s
+        )
         notify = self._readline_json(deadline_s)
         return resp, notify
 
-    def purge(self, mls: float, *get_keys: str, timeout_s: float | None = None) -> dict[str, Any]:
+    def purge(
+        self, mls: float, *get_keys: str, timeout_s: float | None = None
+    ) -> dict[str, Any]:
         return self.do({"purge": float(mls)}, get=get_keys or None, timeout_s=timeout_s)
 
     def abort(self, *get_keys: str, timeout_s: float | None = None) -> dict[str, Any]:
         return self.do("abort", get=get_keys or None, timeout_s=timeout_s)
 
-    def reset_counters(self, *get_keys: str, timeout_s: float | None = None) -> dict[str, Any]:
+    def reset_counters(
+        self, *get_keys: str, timeout_s: float | None = None
+    ) -> dict[str, Any]:
         return self.do("reset", get=get_keys or None, timeout_s=timeout_s)
 
-    def adjust_flow_rate(self, *, expected_mls: float, actual_mls: float, timeout_s: float | None = None) -> dict[str, Any]:
+    def adjust_flow_rate(
+        self, *, expected_mls: float, actual_mls: float, timeout_s: float | None = None
+    ) -> dict[str, Any]:
         return self.request(
-            {"set": {"adjust_flow_rate": {"expected_mls": float(expected_mls), "actual_mls": float(actual_mls)}}},
+            {
+                "set": {
+                    "adjust_flow_rate": {
+                        "expected_mls": float(expected_mls),
+                        "actual_mls": float(actual_mls),
+                    }
+                }
+            },
             timeout_s=timeout_s,
         )
-
