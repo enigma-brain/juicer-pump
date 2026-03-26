@@ -3,7 +3,7 @@ name = "juicer-pump"
 version = "0.1.0"
 description = "Python wrapper for serial communication with the juicer pump."
 readme = "README.md"
-requires-python = ">=3.10"
+requires-python = ">=3.11"
 dependencies = ["pyserial>=3.5"]
 
 [dependency-groups]
