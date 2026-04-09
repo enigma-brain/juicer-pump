@@ -42,7 +42,7 @@ def main():
         )
 
         _start_rew = time.perf_counter()
-        resp = j.reward_with_notify(0.1)
+        resp = j.reward_with_notify(0.1, timeout_s=5)
         _end_rew = time.perf_counter()
         print(f"Reward: {resp}, time: {_end_rew - _start_rew}")
 
